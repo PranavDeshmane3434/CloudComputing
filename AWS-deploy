@@ -1,0 +1,408 @@
+# Full AWS Deployment Guide — MERN To-Do App
+
+## Architecture
+
+| Service              | Instance      | Port  |
+| -------------------- | ------------- | ----- |
+| React Frontend       | EC2 #1        | 3000  |
+| Node/Express Backend | EC2 #2        | 5000  |
+| Database             | MongoDB Atlas | Cloud |
+
+---
+
+# PART 1 — Create GitHub Repository
+
+Push project to GitHub.
+
+Inside project root:
+
+```bash id="u1w8qr"
+git init
+git add .
+git commit -m "Initial MERN Todo App"
+```
+
+Create public repo on GitHub named:
+
+```text id="j5m2lc"
+todo-app
+```
+
+Connect repo:
+
+```bash id="g8v4pk"
+git remote add origin https://github.com/YOUR_USERNAME/todo-app.git
+git branch -M main
+git push -u origin main
+```
+
+---
+
+# PART 2 — Create MongoDB Atlas Database
+
+Go to MongoDB Atlas.
+
+## Create Cluster
+
+* Free Tier
+* AWS
+* Region close to you
+
+---
+
+## Create Database User
+
+Example:
+
+| Field    | Value             |
+| -------- | ----------------- |
+| Username | todoUser          |
+| Password | StrongPassword123 |
+
+---
+
+## Network Access
+
+Add:
+
+```text id="s4k9wn"
+0.0.0.0/0
+```
+
+---
+
+## Copy Connection String
+
+Example:
+
+```env id="m2v7qx"
+mongodb+srv://todoUser:StrongPassword123@cluster0.abcde.mongodb.net/todoapp?retryWrites=true&w=majority
+```
+
+Save it.
+
+---
+
+# PART 3 — Create Backend EC2 Instance
+
+Go to Amazon EC2.
+
+## Launch Instance
+
+| Setting  | Value        |
+| -------- | ------------ |
+| Name     | todo-backend |
+| AMI      | Ubuntu       |
+| Type     | t2.micro     |
+| Key Pair | Create new   |
+| Storage  | 8GB          |
+
+---
+
+## Security Group Rules
+
+### Inbound Rules
+
+| Type       | Port | Source    |
+| ---------- | ---- | --------- |
+| SSH        | 22   | My IP     |
+| Custom TCP | 5000 | 0.0.0.0/0 |
+
+Launch instance.
+
+Copy:
+
+```text id="n8q3rl"
+Backend Public IP
+```
+
+---
+
+# PART 4 — Create Frontend EC2 Instance
+
+Launch another Ubuntu instance.
+
+| Setting | Value         |
+| ------- | ------------- |
+| Name    | todo-frontend |
+| AMI     | Ubuntu        |
+| Type    | t2.micro      |
+
+---
+
+## Security Group Rules
+
+| Type       | Port | Source    |
+| ---------- | ---- | --------- |
+| SSH        | 22   | My IP     |
+| Custom TCP | 3000 | 0.0.0.0/0 |
+
+Copy:
+
+```text id="x1v6mk"
+Frontend Public IP
+```
+
+---
+
+# PART 5 — Connect to Backend EC2
+
+From AWS browser terminal or SSH:
+
+```bash id="r4t9yc"
+ssh -i your-key.pem ubuntu@BACKEND_PUBLIC_IP
+```
+
+---
+
+# PART 6 — Backend Deployment
+
+## Update Ubuntu
+
+```bash id="k7m2qd"
+sudo apt update
+```
+
+---
+
+## Install Node.js, npm, Git
+
+```bash id="w3v8pl"
+sudo apt install nodejs npm git -y
+```
+
+Verify:
+
+```bash id="c6r1tn"
+node -v
+npm -v
+```
+
+---
+
+## Clone GitHub Repo
+
+```bash id="q9y4xm"
+git clone https://github.com/YOUR_USERNAME/todo-app.git
+```
+
+---
+
+## Enter Backend Folder
+
+```bash id="p2u7lk"
+cd todo-app/backend
+```
+
+---
+
+## Install Packages
+
+```bash id="d5n8qr"
+npm install
+```
+
+---
+
+## Create `.env`
+
+```bash id="b1m4tc"
+nano .env
+```
+
+Paste:
+
+```env id="f7w2xp"
+MONGO_URI=YOUR_MONGODB_URI
+PORT=5000
+```
+
+Save:
+
+* CTRL + O
+* ENTER
+* CTRL + X
+
+---
+
+## Start Backend
+
+```bash id="v8q3ln"
+node server.js
+```
+
+Expected:
+
+```bash id="t4r7pk"
+MongoDB Connected
+Server running on port 5000
+```
+
+---
+
+## Test Backend
+
+Browser:
+
+```text id="j6v9wc"
+http://BACKEND_PUBLIC_IP:5000/api/tasks
+```
+
+Expected:
+
+```json id="y3k1md"
+[]
+```
+
+---
+
+# PART 7 — Connect to Frontend EC2
+
+```bash id="u5t8qx"
+ssh -i your-key.pem ubuntu@FRONTEND_PUBLIC_IP
+```
+
+---
+
+# PART 8 — Frontend Deployment
+
+## Update Ubuntu
+
+```bash id="m9v2pk"
+sudo apt update
+```
+
+---
+
+## Install Node.js, npm, Git
+
+```bash id="h4w7lc"
+sudo apt install nodejs npm git -y
+```
+
+---
+
+## Clone Repo
+
+```bash id="r1n5qd"
+git clone https://github.com/YOUR_USERNAME/todo-app.git
+```
+
+---
+
+## Enter Frontend Folder
+
+```bash id="c8u3tm"
+cd todo-app/frontend
+```
+
+---
+
+## Install Packages
+
+npm install
+```
+
+---
+
+## Create `.env`
+
+```bash id="g7m1lr"
+nano .env
+```
+
+Paste backend IP:
+
+```env id="t5r8wc"
+REACT_APP_BACKEND_URL=http://BACKEND_PUBLIC_IP:5000
+```
+
+Example:
+
+```env id="j9k4qn"
+REACT_APP_BACKEND_URL=http://13.233.xx.xx:5000
+```
+
+Save:
+
+* CTRL + O
+* ENTER
+* CTRL + X
+
+---
+
+## Start Frontend
+
+```bash id="w6p2xm"
+npm start
+```
+
+---
+
+# PART 9 — Open Website
+
+Open:
+
+```text id="n3v7ql"
+http://FRONTEND_PUBLIC_IP:3000
+```
+
+Your MERN To-Do App should work live.
+
+---
+
+# PART 10 — Install PM2 (Optional but Recommended)
+
+## Backend
+
+```bash id="f8m4tr"
+sudo npm install -g pm2
+pm2 start server.js --name backend
+pm2 save
+```
+
+---
+
+## Frontend
+
+```bash id="u1k9wc"
+sudo npm install -g pm2
+pm2 start npm --name frontend -- start
+pm2 save
+```
+
+---
+
+# Useful Commands
+
+## Check Running Apps
+
+```bash id="p7r3qm"
+pm2 list
+```
+
+---
+
+## Restart App
+
+```bash id="v2n8lx"
+pm2 restart backend
+pm2 restart frontend
+```
+
+---
+
+## View Logs
+
+```bash id="m5u1td"
+pm2 logs
+```
+
+---
+
+# Final URLs
+
+| Service     | URL                                |
+| ----------- | ---------------------------------- |
+| Frontend    | `http://FRONTEND_IP:3000`          |
+| Backend API | `http://BACKEND_IP:5000/api/tasks` |
